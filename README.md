@@ -147,10 +147,26 @@ Look for the `ADDRESS` or `EXTERNAL-IP` field in the output.
 
 ---
 
-## Clean Up
+## Clean Up & Reset
+
+### Resetting Sandbox Environments
+
+If you want to flush all active sandboxes and reset the environment (for example, after deploying a new container image) without deleting the entire GKE cluster, run the cleanup script:
+
+```bash
+./clean_sandboxes.sh
+```
+
+**What this script does:**
+* Deletes all active `SandboxClaims` from the cluster.
+* Flushes the warmpool pre-allocated pods.
+* Automatically triggers a rolling restart of the `main-app-deployment` to cleanly synchronize its in-memory state and clear any transient data.
+
+### Full Tear-down
 
 To avoid recurring charges, delete the GKE cluster when you are done:
 
 ```bash
 gcloud container clusters delete agent-sandbox-cluster --region us-west1 --quiet
 ```
+
