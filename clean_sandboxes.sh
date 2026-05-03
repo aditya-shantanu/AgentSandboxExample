@@ -17,4 +17,8 @@ done
 echo "Deleting warm pool pods..."
 kubectl delete pods -l app=demo-agent --ignore-not-found
 
+echo "Restarting main application deployment to synchronize in-memory state..."
+kubectl rollout restart deployment main-app-deployment -n main-app-ns
+kubectl rollout status deployment main-app-deployment -n main-app-ns
+
 echo "Cleanup complete."
