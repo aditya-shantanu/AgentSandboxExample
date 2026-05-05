@@ -89,6 +89,7 @@ To deploy to a real cluster, we build images first and then provision the infras
 Ensure your `.env` file has the correct values:
 -   `MODE=REAL`
 -   `PROJECT_NAME`: Your real GCP Project ID.
+-   `CLUSTER_NAME`: Your STANDARD GKE cluster name.
 -   `REGION`: The region where you want to deploy (e.g., `us-west1`).
 -   `GOOGLE_GENAI_USE_VERTEXAI`: Set to `TRUE` (recommended) or `FALSE`.
 
@@ -140,8 +141,8 @@ To access the Main Application UI or interact with the Gateway, you need to find
 # For GKE Gateway
 kubectl get gateway external-http-gateway
 
-# For standard Service (if deployed)
-kubectl get svc main-app-service
+# For standard Service (to access front end UI)
+kubectl get svc main-app-svc -n main-app-ns
 ```
 Look for the `ADDRESS` or `EXTERNAL-IP` field in the output.
 
@@ -169,4 +170,9 @@ To avoid recurring charges, delete the GKE cluster when you are done:
 ```bash
 gcloud container clusters delete agent-sandbox-cluster --region us-west1 --quiet
 ```
+
+## TODO
+
+- [ ] Support Autopilot cluster as a cluster you can use when running on GKE.
+
 
