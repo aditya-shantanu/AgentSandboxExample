@@ -23,7 +23,7 @@ if [ -z "$REGION" ]; then
   echo "Error: REGION is not set. Please set it in .env or environment."
   exit 1
 fi
-CLUSTER_VERSION=${CLUSTER_VERSION:-"1.35.2-gke.1269000"}
+CLUSTER_VERSION=${CLUSTER_VERSION:-"1.35.3-gke.1234000"}
 NODE_POOL_NAME=${NODE_POOL_NAME:-"agent-sandbox-pool"}
 MACHINE_TYPE=${MACHINE_TYPE:-"e2-standard-2"}
 
@@ -51,6 +51,18 @@ else
       --sandbox=type=gvisor
 fi
 
+CURRENT_VERSION=$(gcloud container node-pools describe "$NODE_POOL_NAME" --cluster="$CLUSTER_NAME" --region="$REGION" --format="value(version)" 2>/dev/null)
+if [ "$CURRENT_VERSION" = "$CLUSTER_VERSION" ]; then
+  echo "Node pool $NODE_POOL_NAME is already at version $CLUSTER_VERSION, skipping upgrade."
+else
+  echo "Updating node pool version from $CURRENT_VERSION to $CLUSTER_VERSION..."
+  gcloud container clusters upgrade "$CLUSTER_NAME" \
+    --cluster-version="$CLUSTER_VERSION" \
+    --region="$REGION" \
+    --node-pool="$NODE_POOL_NAME" \
+    --quiet
+fi
+
 if gcloud beta container clusters describe "$CLUSTER_NAME" --region="$REGION" --format="value(addonsConfig.agentSandboxConfig.enabled)" | grep -q "True"; then
   echo "Agent Sandbox feature is already enabled."
 else
@@ -58,6 +70,15 @@ else
   gcloud beta container clusters update "$CLUSTER_NAME" \
       --region="$REGION" \
       --enable-agent-sandbox
+fi
+
+if gcloud beta container clusters describe "$CLUSTER_NAME" --region="$REGION" --format="value(addonsConfig.podSnapshotConfig.enabled)" | grep -q "True"; then
+  echo "Pod Snapshots feature is already enabled."
+else
+  echo "Enabling Pod Snapshots feature on cluster..."
+  gcloud beta container clusters update "$CLUSTER_NAME" \
+      --region="$REGION" \
+      --enable-pod-snapshots
 fi
 
 if gcloud container clusters describe "$CLUSTER_NAME" --region="$REGION" --format="value(addonsConfig.gatewayApiConfig.channel)" | grep -q "STANDARD"; then
